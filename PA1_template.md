@@ -1,14 +1,11 @@
 Reproducible Research - Course Project 1 by Caio Franco
 =======================================================
-```{r, echo=FALSE, message=FALSE}
-library(knitr)
-# Setting global knitr options
-opts_chunk$set(message=FALSE)
-```
+
 
 This R markdown file follows the steps presented in the Assignment section on the README.md file.
 ggplot2 as well as dplyr are necessary to run the scripts. So, first thing is loading those packages:
-```{r}
+
+```r
 library(ggplot2)
 library(dplyr)
 ```
@@ -18,7 +15,8 @@ library(dplyr)
 The data used in this assignment can be found [here]("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip") and was accessed on April 24, 2017.
 
 Firstly, we will download the zipped data from the provided url, unzip the csv file, read it into a variable and store its dates as Date.
-```{r, cache = TRUE}
+
+```r
 # Creating a temporary file
 temp <- tempfile()
 
@@ -42,7 +40,8 @@ In order to answer that question, we will plot a histogram of total number of st
 then calculate and report the mean and median total number of steps taken each day.
 
 Let's start of with the code chunk to plot the histogram and its result:
-```{r, cache=TRUE}
+
+```r
 # Getting total steps per day
 stepsByDate <- summarise(group_by(activity,date),sum(steps,na.rm=T))
 names(stepsByDate)<- c("date","steps")
@@ -53,8 +52,11 @@ histogram <- qplot(Steps)+ggtitle("Histogram of steps taken per day (2012)")
 print(histogram)
 ```
 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+
 Now, we calculate and repot mean and median of the total number of steps taken per day
-```{r}
+
+```r
 stepReport <- summarise(stepsByDate, mean(steps), median(steps))
 class(stepReport) <- "data.frame"
 names(stepReport) <- c("mean","median")
@@ -63,10 +65,15 @@ stepsMedian <- stepReport$median
 paste("Mean of total steps taken per day:", stepsMean, "Median of total steps taken per day:", stepsMedian, col=" ")
 ```
 
+```
+## [1] "Mean of total steps taken per day: 9354.23 Median of total steps taken per day: 10395  "
+```
+
 ## 3. What is the average daily activity pattern?
 
 To find an answer to the question above, one possible way is to plot each five minute interval average number of steps taken. That is what we will accomplish below:
-```{r, cache=TRUE}
+
+```r
 # Calculating mean steps taken per interval disregarding NAs
 stepsByInterval <- summarise(group_by(activity,interval),mean(steps,na.rm=T))
 names(stepsByInterval)<- c("interval","steps")
@@ -78,22 +85,35 @@ plot <- ggplot(data=stepsByInterval, aes(interval,steps)) + geom_line() +
 print(plot)
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
+
 Which interval has the most steps? Let's see:
-```{r}
+
+```r
 mostStepsInterval <- stepsByInterval[which.max(stepsByInterval$steps),]
 paste("Interval",mostStepsInterval$interval,"has the most steps on average with",mostStepsInterval$steps,"steps",col=" ")
+```
+
+```
+## [1] "Interval 835 has the most steps on average with 206.169811320755 steps  "
 ```
 
 ## 4. Inputting missing values
 Aiming to take a look at the impact of missing values, we will plot the histogram of steps taken per day, but taking into consideration the missing values. We will use the mean of steps taken in the given interval to fill NAs.
 
 Let's calulate the number of missing values:
-```{r}
+
+```r
 paste("Missing values: ",sum(is.na(activity$steps)),col="")
 ```
 
+```
+## [1] "Missing values:  2304 "
+```
+
 Now, we will replace missing values with average number of steps for each interval
-```{r, cache=TRUE}
+
+```r
 # Creating new data set to be completed
 fullyFilledActivity <- activity
 
@@ -104,7 +124,8 @@ fullyFilledActivity <- tempAct
 ```
 
 Having replaced all NAs with its interval average number of steps, we shall examine the new daily average of steps taken by plotting the histogram of average number of steps taken each day 
-```{r}
+
+```r
 # Getting total steps per day taking into account recent inputs 
 stepsByDateFilled <- summarise(group_by(fullyFilledActivity,date),sum(steps,na.rm=T))
 names(stepsByDateFilled)<- c("date","steps")
@@ -115,8 +136,11 @@ histogram <- qplot(Steps)+ggtitle("Histogram of steps taken per date with input 
 print(histogram)
 ```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png)
+
 To look even further into the difference the replacement of missing values from the data set can make, we can check the new mean and median below:
-```{r}
+
+```r
 stepReportFilled <- summarise(stepsByDateFilled, mean(steps), median(round(steps)))
 class(stepReportFilled) <- "data.frame"
 names(stepReportFilled) <- c("mean","median")
@@ -125,10 +149,15 @@ stepsMedianwReplace <- stepReportFilled$median
 paste("Mean of total steps taken per day:", stepsMeanwReplace, "Median of total steps taken per day:", stepsMedianwReplace, col=" ")
 ```
 
+```
+## [1] "Mean of total steps taken per day: 10766.19 Median of total steps taken per day: 10766  "
+```
+
 ## 5.Are there differences in activity patterns between weekdays and weekends?
 
 A good way to pursue an answer to this particular question relies on plotting the average number of steps taken in each interval whilst separating the patterns for weekdays and weekends. However first we have to modify the activity data set to include a factor variable that will indicate the type of day.
-```{r}
+
+```r
 # Creating a fla for weekends
 weekendsFlag <- weekdays(activity$date) %in% c("sábado","domingo")
 
@@ -142,7 +171,8 @@ weekAct <- mutate(fullyFilledActivity,type = dayType)
 ```
 
 Finally, with the data set sorted out, let's plot the average number of steps in each interval by day type.
-```{r, cache=TRUE}
+
+```r
 # Calculating mean steps taken per interval by day type using replaced missing values data set
 stepsByIntervalAndType <- summarise(group_by(weekAct,interval, type),mean(steps,na.rm=T))
 names(stepsByIntervalAndType)<- c("interval","type","steps")
@@ -154,3 +184,5 @@ plot <- ggplot(data=stepsByIntervalAndType, aes(interval, steps)) + geom_line() 
         ylab("Number of steps")
 print(plot)
 ```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png)
